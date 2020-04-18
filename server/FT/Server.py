@@ -1,9 +1,9 @@
 import socket
 import multiprocessing
 
-
-activePeerAddresses = []
-fileList = {}
+manager = multiprocessing.Manager()
+fileDict = manager.dict()
+activePeerAddresses = manager.list()
 #creates val from data (according to the format)
 def createVal(data):
     res = "<"
@@ -13,10 +13,15 @@ def createVal(data):
     res += data[len(data)-1].strip()+ ">"
     return res
 
-def handle(connection, address, lock):
+def handle(connection, address, lock, activePeerAddresses, fileList):
     data = connection.recv(1024)
 
-    if(data == b'HELLO'):
+    if data == b'BYE':
+        lock.acquire()
+        #may be we should consider removing from the dict also
+        activePeerAddresses.remove(address)
+        lock.release()
+    elif data == b'HELLO':
         connection.send(b'HI')
         data = connection.recv(1024)
         # here data represented as list of files in the cleint
@@ -35,16 +40,32 @@ def handle(connection, address, lock):
                 else:
                     fileList[key] = [value]
                 lock.release()
+            lock.acquire()
+            activePeerAddresses.append(address)
+            lock.release()
+            print("added files:",fileList)
+            print("added ip address", activePeerAddresses)
+    elif data:
+        data = data.decode()
+        data = data.split(':')
+        if data[0].strip() == 'SEARCH':
             print(fileList)
-            pass
-            
+            lock.acquire()
+            value = fileList[data[1].strip()]
+            lock.release()
+            if value:
+                value = 'FOUND:' + value    
+            else:   
+                value = 'NOT FOUND'
+            connection.send(bytes(value))
+
     connection.close()
     
 
 class Server:
     def __init__(self, host='127.0.0.1', port=None):
         if port is None:
-            port = 37863
+            port = 37864
         self.host = host
         self.port = port
 
@@ -57,7 +78,7 @@ class Server:
         # start of the process
         while(True):
             conn, addr = self.socket.accept()
-            process = multiprocessing.Process(target=handle, args=(conn, addr, lock))
+            process = multiprocessing.Process(target=handle, args=(conn, addr, lock, activePeerAddresses, fileDict))
             process.daemon = True
             process.start()
 
