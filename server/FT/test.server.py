@@ -2,7 +2,7 @@ import unittest
 import socket
 from Server import Server
 HOST = '127.0.0.1'
-PORT = 37864
+PORT = 37863
 
 class TestServerMethods(unittest.TestCase):    
     def test_server(self):
