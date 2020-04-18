@@ -15,7 +15,7 @@ class TestServerMethods(unittest.TestCase):
             cli.close()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cli:
             cli.connect((HOST, PORT))
-            cli.send(b'SEARCH:ural')
+            cli.send(b'SEARCH:ual')
             data = cli.recv(1024)
             data = data.decode()
             print(data)

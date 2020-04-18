@@ -50,8 +50,11 @@ def handle(connection, address, lock, activePeerAddresses, fileDict):
     elif data:
         data = data.split(':')
         if data[0].strip() == 'SEARCH':
+            key = data[1].strip()
             lock.acquire()
-            value = fileDict[data[1].strip()]
+            value = None
+            if key in fileDict:
+                value = fileDict[key]
             lock.release()
             if value:
                 value = ', '.join(value)
