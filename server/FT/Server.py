@@ -13,7 +13,7 @@ def createVal(data):
     res += data[len(data)-1].strip()+ ">"
     return res
 
-def handle(connection, address):
+def handle(connection, address, lock):
     data = connection.recv(1024)
 
     if(data == b'HELLO'):
@@ -29,11 +29,12 @@ def handle(connection, address):
                 x = x.split(',')
                 key = x[0] #filename 
                 value = createVal(x) #value
+                lock.acquire()
                 if(key in fileList):
                     fileList[key].append(value)
                 else:
                     fileList[key] = [value]
-
+                lock.release()
             print(fileList)
             pass
             
@@ -52,10 +53,11 @@ class Server:
         self.socket.bind((self.host, self.port))
         self.port = self.socket.getsockname()[1]
         self.socket.listen()
+        lock = multiprocessing.Lock() 
         # start of the process
         while(True):
             conn, addr = self.socket.accept()
-            process = multiprocessing.Process(target=handle, args=(conn, addr))
+            process = multiprocessing.Process(target=handle, args=(conn, addr, lock))
             process.daemon = True
             process.start()
 
