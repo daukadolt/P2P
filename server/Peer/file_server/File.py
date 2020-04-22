@@ -14,6 +14,7 @@ class File:
         self.type = self.filename.split('.')[1]
         self.size = os.stat(path).st_size
         self.last_modified = os.stat(path).st_mtime
+        self.path = path
 
     def __repr__(self):
         return '<{filename}, {type}, {size}, {last_modified}>'.format(
