@@ -53,32 +53,35 @@ def getFilesFromServer(filename):
 				results.append('<{}>'.format(file))
 	return results
 
-def getIpAndPortFromItem(item):
+def getIpPortSizeFromItem(item):
 	item = item.strip('<>')
 	details = item.split(',')
-	return details[-2], details[-1]
+	return details[-2], details[-1], int(details[1])
 
-def downloadFileFrom(ip, port):
+def downloadFileFrom(ip, port, size):
 	label = Label(root, text='Downloading File')
 	label.pack()
 	filename = search_file.get().strip()
-	FileDownloader.download_from_peer(ip, int(port), filename, 'whatever', 123)
+	FileDownloader.download_from_peer(ip, int(port), filename, 'whatever', size)
 	#here you download and save the file
 	label.after(1500, label.destroy)
 
 def dbClickOnListItem(event):
 	item = listBox.get('active')
 	print('event', event)
-	ip, port = getIpAndPortFromItem(item)
-	print(ip, port)
-	downloadFileFrom(ip, port)
+	ip, port, size = getIpPortSizeFromItem(item)
+	print(ip, port, size)
+	downloadFileFrom(ip, port, size)
 
 def onClosing():
-    if messagebox.askokcancel("Quit", "Do you want to quit?"):
-        #send bye to the ft server
-        print("BYE!")
-        time.sleep(1)
-        root.destroy()
+	if messagebox.askokcancel("Quit", "Do you want to quit?"):
+		ft_host, ft_port = global_data['ft_host'], global_data['ft_port']
+		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+			s.connect((ft_host, ft_port))
+			s.sendall(b'BYE')
+		print("Sent BYE!")
+		time.sleep(1)
+		root.destroy()
 
 def sendFileInfoToServer():
 	time.sleep(1)
