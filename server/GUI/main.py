@@ -1,7 +1,12 @@
 from tkinter import *
 from tkinter import messagebox
 import time
-import sys
+import os
+from FileServer import FileServer
+import FileDownloader
+import socket
+
+global_data = {'ft_host': None, 'ft_port': None}
 
 root = Tk()
 root.geometry('400x400')
@@ -21,32 +26,32 @@ listBox.config(yscrollcommand=scrollbar.set)
 
 
 def searchClick():
-	#here I send request to server and get list of files 
+	#here I send request to server and get list of files
 	listBox.delete(0, END)
 	searchText = search_file.get()
 	files = getFilesFromServer(searchText)
-	for file in files: 
+	for file in files:
 		listBox.insert(END, file)
 
-def getFilesFromServer(fileName):
-	fileHash = {}
-	fileHash['dauka'] = [
-		'<pdf,333,07/07/2020,192.168.0.5,4444>',
-		'<pdf,333,07/07/2020,192.168.0.5,4444>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>',
-		'<txt,833,07/07/2020,192.169.0.5,4414>'
-	]
-	if fileName in fileHash:
-		return fileHash[fileName]
-	return ['NOT FOUND']
+def getFilesFromServer(filename):
+	results = []
+	ft_host, ft_port = global_data['ft_host'], global_data['ft_port']
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		s.connect((ft_host, ft_port))
+		search_request = 'SEARCH: {}'.format(filename)
+		search_request = search_request.encode()
+		s.sendall(search_request)
+		data = s.recv(1024)
+		data = data.decode()
+		if data == 'NOT FOUND': return ['NOT FOUND']
+		files = data.split('FOUND:')[-1]
+		files = files.strip()
+		if len(files) != 1:
+			files = files.split('>, ')
+			for file in files:
+				file = file.strip('<>')
+				results.append('<{}>'.format(file))
+	return results
 
 def getIpAndPortFromItem(item):
 	item = item.strip('<>')
@@ -56,13 +61,16 @@ def getIpAndPortFromItem(item):
 def downloadFileFrom(ip, port):
 	label = Label(root, text='Downloading File')
 	label.pack()
-	#here you download and save the file 
+	filename = search_file.get().strip()
+	FileDownloader.download_from_peer(ip, int(port), filename, 'whatever', 123)
+	#here you download and save the file
 	label.after(1500, label.destroy)
 
 def dbClickOnListItem(event):
 	item = listBox.get('active')
+	print('event', event)
 	ip, port = getIpAndPortFromItem(item)
-	print(ip, port) 
+	print(ip, port)
 	downloadFileFrom(ip, port)
 
 def onClosing():
@@ -74,9 +82,17 @@ def onClosing():
 
 def sendFileInfoToServer():
 	time.sleep(1)
-	for i, arg in enumerate(sys.argv):
-		if not i == 0: 
-			print("sending: ",arg)	
+	for file_name in os.listdir('./files'):
+		print('sending', file_name)
+	fs = FileServer()
+	print('FT server ip: ', end=" ")
+	ft_host = input()
+	global_data['ft_host'] = ft_host
+	print('FT server port: ', end=" ")
+	ft_port = int(input())
+	global_data['ft_port'] = ft_port
+	print('connecting to FT...')
+	fs.start(ft_host, ft_port)
 	print('Send files to server and get response')
 
 

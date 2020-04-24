@@ -27,6 +27,7 @@ class File:
             ip=host_ip, port=host_port
         )
 
+
 if __name__ == '__main__':
     first_file = os.listdir('./files')[0]
     file = File('./files/{}'.format(first_file))

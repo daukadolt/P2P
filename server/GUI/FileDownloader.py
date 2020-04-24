@@ -21,3 +21,11 @@ def download_from_peer(peer_host, peer_port, file_name, file_type, file_size):
 
         with open('./{}'.format(file_name), 'wb') as output_file:
             output_file.write(file_data)
+
+
+if __name__ == '__main__':
+    print('peer host, peer port, file_name, file_type, file_size: ')
+    peer_host, peer_port, file_name, file_type, file_size = input().split()
+    peer_port = int(peer_port)
+    file_size = float(file_size)
+    download_from_peer(peer_host, peer_port, file_name, file_type, file_size)

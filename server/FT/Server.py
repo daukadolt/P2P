@@ -69,7 +69,7 @@ def handle(connection, address, lock, activePeerAddresses, fileDict):
 class Server:
     def __init__(self, host='127.0.0.1', port=None):
         if port is None:
-            port = 37863
+            port = 0
         self.host = host
         self.port = port
 
@@ -77,6 +77,7 @@ class Server:
         self.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         self.port = self.socket.getsockname()[1]
+        print('FT server at port', self.port)
         self.socket.listen()
         lock = multiprocessing.Lock() 
         # start of the process

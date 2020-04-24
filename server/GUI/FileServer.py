@@ -1,6 +1,6 @@
 import socket, os
 import threading, logging
-from .File import File
+from File import File
 
 logging.basicConfig(format='%(asctime)s: %(message)s', level=logging.INFO,
                     datefmt='%H:%M:%S')
@@ -71,3 +71,9 @@ class FileServer:
         peer_listener = threading.Thread(target=file_server_listen)
         peer_listener.start()
         logging.info('threaded file_server_listener')
+
+
+if __name__ == '__main__':
+    ft_port = int(input())
+    server = FileServer()
+    server.start('127.0.0.1', ft_port)
