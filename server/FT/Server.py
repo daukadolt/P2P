@@ -17,10 +17,7 @@ def handle(connection, address, lock, activePeerAddresses, fileDict):
     data = connection.recv(1024)
     data = data.decode()
     if data == 'BYE':
-        lock.acquire()
-        #may be we should consider removing from the dict also
-        activePeerAddresses.remove(address)
-        lock.release()
+        print('received BYE from: ', address)
     elif data == 'HELLO':
         connection.send(b'HI')
         data = connection.recv(1024)
