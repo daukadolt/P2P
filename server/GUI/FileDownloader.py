@@ -13,11 +13,14 @@ def download_from_peer(peer_host, peer_port, file_name, file_type, file_size):
         file_data = s.recv(buffer_size)
         more_bytes_to_come = len(file_data) == 1024
         file_data = file_data[6:]  # omitting 'FILE: '
+        readBytes = len(file_data)
+        print(int(file_size))
         if more_bytes_to_come:
-            while True:
-                buffer = s.recv(buffer_size)
-                file_data += buffer
-                if len(buffer) < buffer_size: break
+            while readBytes < int(file_size):
+                bufferData = s.recv(buffer_size)
+                file_data += bufferData
+                readBytes += len(bufferData)
+                #if len(bufferData) < buffer_size: break
 
         with open('./{}'.format(file_name), 'wb') as output_file:
             output_file.write(file_data)
